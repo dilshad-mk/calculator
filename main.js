@@ -14,7 +14,7 @@ const valuesInput = document.querySelector("#values");
 const resultInput = document.querySelector("#result");
 
 // List of operators
-const operators = ["+", "-", "x", "/"];
+const operators = ["+", "-", "x", "/", "%"];
 
 // ================================
 // 2. CORE FUNCTION TO PROCESS VALUES
@@ -31,13 +31,13 @@ function handleInput(value) {
   }
 
   // BACKSPACE / undo
-  if (value === "del" || value === "Backspace") {
+  if (value === "del") {
     valuesInput.value = valuesInput.value.slice(0, -1);
     return;
   }
 
   // CALCULATE
-  if (value === "=" || value === "Enter") {
+  if (value === "=") {
     try {
       const expression = valuesInput.value.replace(/x/g, "*");
       resultInput.value = eval(expression);
@@ -84,8 +84,16 @@ keyWrapper.addEventListener("click", function (event) {
 document.addEventListener("keydown", function (event) {
   let key = event.key;
 
-  // Map keyboard operators to calculator display
+  // Map keyboard keys to calculator logic
+  if (key === "Enter") key = "=";
+  if (key === "Backspace") key = "del";
+  if (key === "Escape") key = "C";
   if (key === "*") key = "x";
+
+  // Allow only valid keys: numbers, dot, operators, or special keys
+  if (!(!isNaN(key) || key === "." || operators.includes(key) || ["=", "del", "C"].includes(key))) {
+    return; // ignore everything else like Shift, Space, Tab
+  }
 
   handleInput(key);
 });
