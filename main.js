@@ -1,4 +1,5 @@
 import './style.css'
+
 // ================================
 // 1. SELECT REQUIRED ELEMENTS
 // ================================
@@ -12,69 +13,79 @@ const valuesInput = document.querySelector("#values");
 // Big display (final result)
 const resultInput = document.querySelector("#result");
 
+// List of operators
+const operators = ["+", "-", "x", "/"];
 
 // ================================
-// 2. EVENT LISTENER (EVENT DELEGATION)
+// 2. CORE FUNCTION TO PROCESS VALUES
 // ================================
 
-keyWrapper.addEventListener("click", function (event) {
+function handleInput(value) {
+  const lastChar = valuesInput.value.slice(-1); // last character of current expression
 
-  // Find the closest .keys div (works for div or button click)
-  const key = event.target.closest(".keys");
-
-  // If clicked outside any key, stop
-  if (!key) return;
-
-  // Get the button inside the key
-  const button = key.querySelector("button");
-
-  // Read the button text (7, +, C, =, etc.)
-  const value = button.textContent;
-
-
-  // ================================
-  // 3. HANDLE CLEAR (C)
-  // ================================
-
+  // CLEAR ALL
   if (value === "C") {
-    valuesInput.value = "";   // clear expression
-    resultInput.value = "";   // clear result
-    return;                   // stop further execution
+    valuesInput.value = "";
+    resultInput.value = "";
+    return;
   }
 
-
-  // ================================
-  // 4. HANDLE BACKSPACE (+/-)
-  // ================================
-
-  if (value === "del") {
-    // Remove the last character from values
+  // BACKSPACE / undo
+  if (value === "del" || value === "Backspace") {
     valuesInput.value = valuesInput.value.slice(0, -1);
     return;
   }
 
-
-  // ================================
-  // 5. HANDLE EQUAL (=)
-  // ================================
-
-  if (value === "=") {
+  // CALCULATE
+  if (value === "=" || value === "Enter") {
     try {
-      // Replace 'x' with '*' for JS calculation
       const expression = valuesInput.value.replace(/x/g, "*");
-
-      // Evaluate expression and show result
       resultInput.value = eval(expression);
-    } catch (error) {
+    } catch {
       resultInput.value = "Error";
     }
     return;
   }
 
+  // If value is operator
+  if (operators.includes(value)) {
+    if (valuesInput.value === "") return; // prevent operator at start
+    if (operators.includes(lastChar)) {
+      // replace last operator with new one
+      valuesInput.value = valuesInput.value.slice(0, -1) + value;
+    } else {
+      valuesInput.value += value;
+    }
+    return;
+  }
 
-  // ================================
-  // 6. DEFAULT ACTION (APPEND VALUE)
-  // ================================
+  // Default: append numbers or dot
+  valuesInput.value += value;
+}
 
-  valuesInput.value = valuesInput.value + value;
+// ================================
+// 3. CLICK EVENT LISTENER
+// ================================
+
+keyWrapper.addEventListener("click", function (event) {
+  const key = event.target.closest(".keys");
+  if (!key) return;
+
+  const button = key.querySelector("button");
+  const value = button.textContent;
+
+  handleInput(value);
+});
+
+// ================================
+// 4. KEYBOARD SUPPORT
+// ================================
+
+document.addEventListener("keydown", function (event) {
+  let key = event.key;
+
+  // Map keyboard operators to calculator display
+  if (key === "*") key = "x";
+
+  handleInput(key);
 });
